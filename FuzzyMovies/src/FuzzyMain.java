@@ -3,17 +3,32 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+
 public class FuzzyMain {
+	private static class Movie {
+	    String title;
+	    String genres;
+	    String keywords;
+	    float score;
+
+	    public Movie(String title, String genres, String keywords, float score) {
+	        this.title = title;
+	        this.genres = genres;
+	        this.keywords = keywords;
+	        this.score = score;
+	    }
+	}
+	
+	
 	public static void main(String[] args) {
 		System.out.println("Rodando codigo do trabalho");
-		
-		String movieGenres = "Terror, Suspense, Fantasia, Music";
-        float result = fuzzyGenreMatch(movieGenres);
-        System.out.println("Relevância total: " + result);
+		List<Movie> moviesList = new ArrayList<>();
 		
         GrupoVariaveis grupoGenero = new GrupoVariaveis();
         grupoGenero.add(new VariavelFuzzy("Genero Irrelevante", -100, 0, 0, (float) 0.1));
@@ -78,9 +93,27 @@ public class FuzzyMain {
 				
 				float score = (Irrelevante*1.5f+Relevante*7.0f+MuitoRelevante*9.5f)/(Irrelevante+Relevante+MuitoRelevante);
 				
+				// Trata casos onde nenhum genero alvo foi mencionado, resultando em NaN
+				if (Float.isNaN(score)){
+					score = -10;
+				}
+				
 				System.out.println("Irrelevante: "+ Irrelevante+" Relevante: "+ Relevante +" Muito Relevante: "+ MuitoRelevante);
 				System.out.println(" "+genero+" | "+keywords +"-> "+score);
 				System.out.println(" ");
+				
+				Movie currentMovie = new Movie(spl[7], genero, keywords, score);
+				moviesList.add(currentMovie);
+			}
+			// Ordena filmes em ordem descendente
+			moviesList.sort((m1, m2) -> Float.compare(m2.score, m1.score));
+
+			// Display TOP 10
+			System.out.println("\n\n=== TOP 10 Filmes ===");
+			int limit = Math.min(10, moviesList.size());
+			for (int i = 0; i < limit; i++) {
+			    Movie movie = moviesList.get(i);
+			    System.out.printf("%d. %s (Score: %.2f)%n", i + 1, movie.title, movie.score);
 			}
 			
 		} catch (FileNotFoundException e) {
