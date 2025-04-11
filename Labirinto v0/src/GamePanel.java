@@ -2,15 +2,12 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 
-import javax.swing.*;
-import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 import java.awt.image.*;
-import javax.imageio.ImageIO;
 
 
 public class GamePanel extends Canvas implements Runnable
@@ -240,7 +237,7 @@ public GamePanel()
 	mousex = mousey = 0;
 	
 	mapa = new Mapa_Grid(100,100,ntileW, ntileH);
-	mapa.loadmapfromimage("/imagemlabirinto1000.png");
+	mapa.loadmapfromimage("res/imagemlabirinto1000.png");
 	
 } // end of GamePanel()
 

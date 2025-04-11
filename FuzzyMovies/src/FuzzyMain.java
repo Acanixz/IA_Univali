@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +42,7 @@ public class FuzzyMain {
         grupoKeywords.add(new VariavelFuzzy("Keywords Muito Relevantes", 4, (float) 4.5, 10, 10));
         
         try {
-			BufferedReader bfr = new BufferedReader(new FileReader(new File("movie_dataset.csv")));
+			BufferedReader bfr = new BufferedReader(new FileReader(new File("FuzzyMovies/movie_dataset.csv")));
 			
 			String header = bfr.readLine();
 			String splitheder[] = header.split(";");
