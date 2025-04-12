@@ -174,8 +174,8 @@ public GamePanel()
 					long timeini = System.currentTimeMillis();
 
 					// TODO Executa Algoritmo
-					System.out.println(""+my+" "+mx);
-					System.out.println("meueroi "+(int)(meuHeroi.X/16)+" "+(int)(meuHeroi.Y/16));
+					System.out.println("Coordenada alvo: "+my+" "+mx);
+					System.out.println("Pos. Heroi: "+(int)(meuHeroi.X/16)+" "+(int)(meuHeroi.Y/16));
 					rodaBuscaProfundidade((int)(meuHeroi.X/16),(int)(meuHeroi.Y/16),mx,my);
 
 					long timefin = System.currentTimeMillis() - timeini;
