@@ -26,7 +26,7 @@ boolean LEFT, RIGHT,UP,DOWN;
 
 public static int mousex,mousey; 
 
-public static ArrayList<Agente> listadeagentes = new ArrayList<Agente>();
+public static ArrayList<MeuAgente> listadeagentes = new ArrayList<MeuAgente>();
 
 Mapa_Grid mapa;
 
@@ -36,6 +36,7 @@ MeuAgente meuHeroi = null;
 
 //TODO ESSE È O RESULTADO
 int caminho[] = null;
+PriorityQueue<AStarNode> openList;
 
 	private class AStarNode {
 		int x, y;
@@ -80,7 +81,7 @@ int caminho[] = null;
 			return false;
 		}
 
-		PriorityQueue<AStarNode> openList = new PriorityQueue<>(
+		openList = new PriorityQueue<>(
 				Comparator.comparingInt(AStarNode::getFCost).thenComparingInt(AStarNode::getHCost)
 		);
 		Map<Point, AStarNode> openMap = new HashMap<>();
@@ -326,7 +327,14 @@ public GamePanel()
 						System.out.println("Caminho encontrado!");
 						long timefin = System.currentTimeMillis() - timeini;
 						System.out.println("Tempo Final: " + timefin + "ms");
-					}
+
+                        try {
+                            meuHeroi.MoverAgente(caminho);
+							caminho = null;
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
 
 				} else {
 					System.out.println("Bloqueado, destino definido em uma parede");
@@ -378,7 +386,7 @@ public GamePanel()
 		}
 	});
 
-	meuHeroi = new MeuAgente(10, 10, Color.blue);
+	meuHeroi = new MeuAgente(10, 10, Color.MAGENTA);
 	
 	listadeagentes.add(meuHeroi);
 	
@@ -622,9 +630,7 @@ private void gameRender(Graphics2D dbg)
 		System.out.println("Erro ao desenhar mapa");
 	}
 	
-	for(int i = 0;i < listadeagentes.size();i++){
-	  listadeagentes.get(i).DesenhaSe(dbg, mapa.MapX, mapa.MapY);
-	}
+
 	
 	synchronized (nodosPercorridos) {
 		for (Iterator iterator = nodosPercorridos.iterator(); iterator.hasNext();) {
@@ -635,6 +641,18 @@ private void gameRender(Graphics2D dbg)
 			dbg.fillRect(px*16-mapa.MapX, py*16-mapa.MapY, 16, 16);
 		}
 	}
+
+	if (openList != null){
+		synchronized (openList) {
+			for (AStarNode node : openList) {
+				int px = node.x;
+				int py = node.y;
+				dbg.setColor(Color.orange);
+				dbg.fillRect(px * 16 - mapa.MapX, py * 16 - mapa.MapY, 16, 16);
+			}
+		}
+	}
+
 	
 	if(caminho!=null){
 		
@@ -660,7 +678,10 @@ private void gameRender(Graphics2D dbg)
 	
 	dbg.drawString("N: "+nodosPercorridos.size(), 100, 30);	
 	//System.out.println("left "+LEFT);
-		
+	for(int i = 0;i < listadeagentes.size();i++){
+		listadeagentes.get(i).DesenhaAgente(dbg, mapa.MapX, mapa.MapY, zoom);
+	}
+
 }
 
 }
