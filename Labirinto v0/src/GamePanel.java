@@ -2,11 +2,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Random;
+import java.util.*;
 import java.awt.image.*;
 
 
@@ -40,6 +36,153 @@ MeuAgente meuHeroi = null;
 
 //TODO ESSE È O RESULTADO
 int caminho[] = null;
+
+	private class AStarNode {
+		int x, y;
+		int gCost;
+		int hCost;
+		int fCost;
+		AStarNode parent;
+
+		public AStarNode(int x, int y) {
+			this.x = x;
+			this.y = y;
+			this.gCost = Integer.MAX_VALUE;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+			AStarNode aStarNode = (AStarNode) o;
+			return x == aStarNode.x && y == aStarNode.y;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(x, y);
+		}
+
+		public int getFCost() {
+			return fCost;
+		}
+
+		public int getHCost() {
+			return hCost;
+		}
+	}
+
+	public boolean rodaAStar(int startX, int startY, int targetX, int targetY) {
+		if (startX < 0 || startX >= mapa.Largura || startY < 0 || startY >= mapa.Altura ||
+				targetX < 0 || targetX >= mapa.Largura || targetY < 0 || targetY >= mapa.Altura ||
+				mapa.mapa[startY][startX] != 0 || mapa.mapa[targetY][targetX] != 0) {
+			caminho = null;
+			return false;
+		}
+
+		PriorityQueue<AStarNode> openList = new PriorityQueue<>(
+				Comparator.comparingInt(AStarNode::getFCost).thenComparingInt(AStarNode::getHCost)
+		);
+		Map<Point, AStarNode> openMap = new HashMap<>();
+		Set<AStarNode> closedList = new HashSet<>();
+
+		AStarNode startNode = new AStarNode(startX, startY);
+		startNode.gCost = 0;
+		startNode.hCost = calculateH(startX, startY, targetX, targetY);
+		startNode.fCost = startNode.gCost + startNode.hCost;
+
+		openList.add(startNode);
+		openMap.put(new Point(startX, startY), startNode);
+
+		while (!openList.isEmpty()) {
+			AStarNode currentNode = openList.poll();
+			openMap.remove(new Point(currentNode.x, currentNode.y));
+
+			if (currentNode.x == targetX && currentNode.y == targetY) {
+				caminho = reconstructPath(currentNode);
+				return true;
+			}
+
+			closedList.add(currentNode);
+
+			for (AStarNode neighbor : getNeighbors(currentNode)) {
+				if (closedList.contains(neighbor)) {
+					continue;
+				}
+
+				int tentativeGCost = currentNode.gCost + 1;
+
+				Point neighborPoint = new Point(neighbor.x, neighbor.y);
+				AStarNode existingNode = openMap.get(neighborPoint);
+
+				if (existingNode == null) {
+					neighbor.gCost = tentativeGCost;
+					neighbor.hCost = calculateH(neighbor.x, neighbor.y, targetX, targetY);
+					neighbor.fCost = neighbor.gCost + neighbor.hCost;
+					neighbor.parent = currentNode;
+
+					openList.add(neighbor);
+					openMap.put(neighborPoint, neighbor);
+				} else {
+					if (tentativeGCost < existingNode.gCost) {
+						existingNode.gCost = tentativeGCost;
+						existingNode.hCost = calculateH(existingNode.x, existingNode.y, targetX, targetY);
+						existingNode.fCost = existingNode.gCost + existingNode.hCost;
+						existingNode.parent = currentNode;
+
+						openList.remove(existingNode);
+						openList.add(existingNode);
+					}
+				}
+			}
+		}
+
+		caminho = null;
+		return false;
+	}
+
+	private ArrayList<AStarNode> getNeighbors(AStarNode node) {
+		ArrayList<AStarNode> neighbors = new ArrayList<AStarNode>();
+
+		int x = node.x;
+		int y = node.y;
+
+		int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+		for (int[] dir : directions) {
+			int newX = x + dir[0];
+			int newY = y + dir[1];
+
+			if (newX >= 0 && newX < mapa.Largura && newY >= 0 && newY < mapa.Altura) {
+				if (mapa.mapa[newY][newX] == 0) {
+					neighbors.add(new AStarNode(newX, newY));
+				}
+			}
+		}
+
+		return neighbors;
+	}
+
+	private int calculateH(int x, int y, int targetX, int targetY) {
+		return Math.abs(x - targetX) + Math.abs(y - targetY);
+	}
+
+	private int[] reconstructPath(AStarNode endNode) {
+		LinkedList<AStarNode> path = new LinkedList<>();
+		AStarNode currentNode = endNode;
+		while (currentNode != null) {
+			path.addFirst(currentNode);
+			currentNode = currentNode.parent;
+		}
+
+		int[] caminho = new int[path.size() * 2];
+		int index = 0;
+		for (AStarNode node : path) {
+			caminho[index++] = node.x;
+			caminho[index++] = node.y;
+		}
+
+		return caminho;
+	}
 
 float zoom = 1;
 
@@ -168,20 +311,25 @@ public GamePanel()
 					mapa.mapa[my][mx] = 0;
 				}
 			}
-			if(arg0.getButton()==1){
-				if(mapa.mapa[my][mx]==0) {
+			if (arg0.getButton() == 1) {
+				if (mapa.mapa[my][mx] == 0) {
 					caminho = null;
 					long timeini = System.currentTimeMillis();
 
-					// TODO Executa Algoritmo
-					System.out.println("Coordenada alvo: "+my+" "+mx);
-					System.out.println("Pos. Heroi: "+(int)(meuHeroi.X/16)+" "+(int)(meuHeroi.Y/16));
-					rodaBuscaProfundidade((int)(meuHeroi.X/16),(int)(meuHeroi.Y/16),mx,my);
+					System.out.println("Coordenada alvo: " + mx + " " + my);
+					System.out.println("Pos. Heroi: " + (int) (meuHeroi.X / 16) + " " + (int) (meuHeroi.Y / 16));
+					rodaAStar((int) (meuHeroi.X / 16), (int) (meuHeroi.Y / 16), mx, my);
 
-					long timefin = System.currentTimeMillis() - timeini;
-					System.out.println("Tempo Final: "+timefin);
-				}else {
-					System.out.println("Caminho Final Bloqueado");
+					if (caminho == null){
+						System.out.println("Não há caminhos possíveis");
+					} else {
+						System.out.println("Caminho encontrado!");
+						long timefin = System.currentTimeMillis() - timeini;
+						System.out.println("Tempo Final: " + timefin + "ms");
+					}
+
+				} else {
+					System.out.println("Bloqueado, destino definido em uma parede");
 				}
 			}
 		}
