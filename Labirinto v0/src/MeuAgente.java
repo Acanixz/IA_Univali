@@ -44,7 +44,7 @@ public class MeuAgente extends Agente {
 			this.Y = coordsY;
 			// System.out.println(this.X + " | " + this.Y);
 
-			Thread.sleep(50);
+			Thread.sleep(25);
 		}
 	}
 

@@ -186,6 +186,7 @@ PriorityQueue<AStarNode> openList;
 	private int[] reconstructPath(AStarNode endNode) {
 		LinkedList<AStarNode> path = new LinkedList<>();
 		AStarNode currentNode = endNode;
+		// Sobe a hierarquia dos nós até chegar ao primeiro
 		while (currentNode != null) {
 			path.addFirst(currentNode);
 			currentNode = currentNode.parent;
@@ -193,6 +194,8 @@ PriorityQueue<AStarNode> openList;
 
 		int[] caminho = new int[path.size() * 2];
 		int index = 0;
+
+		// Retorna o caminho, com as coordenadas sendo integers
 		for (AStarNode node : path) {
 			caminho[index++] = node.x;
 			caminho[index++] = node.y;
