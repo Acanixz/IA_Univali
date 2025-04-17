@@ -73,50 +73,64 @@ PriorityQueue<AStarNode> openList;
 		}
 	}
 
+	// Método principal que executa a busca A* no mapa
 	public boolean rodaAStar(int startX, int startY, int targetX, int targetY) {
+		// 1) Verifica limites e obstáculos iniciais
 		if (startX < 0 || startX >= mapa.Largura || startY < 0 || startY >= mapa.Altura ||
 				targetX < 0 || targetX >= mapa.Largura || targetY < 0 || targetY >= mapa.Altura ||
 				mapa.mapa[startY][startX] != 0 || mapa.mapa[targetY][targetX] != 0) {
-			caminho = null;
+			caminho = null;  // sem caminho possível
 			return false;
 		}
 
+		// 2) Inicializa openList (fila de prioridade) e auxiliares
 		openList = new PriorityQueue<>(
-				Comparator.comparingInt(AStarNode::getFCost).thenComparingInt(AStarNode::getHCost)
+				Comparator.comparingInt(AStarNode::getFCost)
+						.thenComparingInt(AStarNode::getHCost)
 		);
-		Map<Point, AStarNode> openMap = new HashMap<>();
-		Set<AStarNode> closedList = new HashSet<>();
+		Map<Point, AStarNode> openMap = new HashMap<>(); // lookup rápido de nós na openList
+		Set<AStarNode> closedList = new HashSet<>();     // nós já totalmente processados
 
+		// 3) Cria nó inicial e define custos
 		AStarNode startNode = new AStarNode(startX, startY);
-		startNode.gCost = 0;
+		startNode.gCost = 0;  // custo zero até ele mesmo
 		startNode.hCost = calculateH(startX, startY, targetX, targetY);
 		startNode.fCost = startNode.gCost + startNode.hCost;
 
+		// Adiciona o nó inicial na openList e no mapa auxiliar
 		openList.add(startNode);
 		openMap.put(new Point(startX, startY), startNode);
 
+		// 4) Loop principal: enquanto houver nós para explorar…
 		while (!openList.isEmpty()) {
+			// 4.1) Retira o nó com menor fCost (mais promissor)
 			AStarNode currentNode = openList.poll();
 			openMap.remove(new Point(currentNode.x, currentNode.y));
 
+			// 4.2) Se chegamos no alvo, reconstrói o caminho e retorna sucesso
 			if (currentNode.x == targetX && currentNode.y == targetY) {
 				caminho = reconstructPath(currentNode);
 				return true;
 			}
 
+			// 4.3) Marca o nó como fechado (não revisitar)
 			closedList.add(currentNode);
 
+			// 4.4) Para cada vizinho válido do nó corrente…
 			for (AStarNode neighbor : getNeighbors(currentNode)) {
+				// Se já foi fechado, pula
 				if (closedList.contains(neighbor)) {
 					continue;
 				}
 
+				// custo até o vizinho via currentNode
 				int tentativeGCost = currentNode.gCost + 1;
 
 				Point neighborPoint = new Point(neighbor.x, neighbor.y);
 				AStarNode existingNode = openMap.get(neighborPoint);
 
 				if (existingNode == null) {
+					// vizinho não estava na openList: inicializa custos e adiciona
 					neighbor.gCost = tentativeGCost;
 					neighbor.hCost = calculateH(neighbor.x, neighbor.y, targetX, targetY);
 					neighbor.fCost = neighbor.gCost + neighbor.hCost;
@@ -124,20 +138,21 @@ PriorityQueue<AStarNode> openList;
 
 					openList.add(neighbor);
 					openMap.put(neighborPoint, neighbor);
-				} else {
-					if (tentativeGCost < existingNode.gCost) {
-						existingNode.gCost = tentativeGCost;
-						existingNode.hCost = calculateH(existingNode.x, existingNode.y, targetX, targetY);
-						existingNode.fCost = existingNode.gCost + existingNode.hCost;
-						existingNode.parent = currentNode;
+				} else if (tentativeGCost < existingNode.gCost) {
+					// já estava na openList, mas achamos caminho melhor: atualiza
+					existingNode.gCost = tentativeGCost;
+					existingNode.hCost = calculateH(existingNode.x, existingNode.y, targetX, targetY);
+					existingNode.fCost = existingNode.gCost + existingNode.hCost;
+					existingNode.parent = currentNode;
 
-						openList.remove(existingNode);
-						openList.add(existingNode);
-					}
+					// reordena a fila ajustando posição do nó atualizado
+					openList.remove(existingNode);
+					openList.add(existingNode);
 				}
 			}
 		}
 
+		// 5) Se sair do loop sem achar destino, não há caminho
 		caminho = null;
 		return false;
 	}
@@ -163,6 +178,7 @@ PriorityQueue<AStarNode> openList;
 		return neighbors;
 	}
 
+	// Heurística de Manhattan: distância “em blocos” até o alvo
 	private int calculateH(int x, int y, int targetX, int targetY) {
 		return Math.abs(x - targetX) + Math.abs(y - targetY);
 	}
@@ -643,14 +659,22 @@ private void gameRender(Graphics2D dbg)
 	}
 
 	if (openList != null){
+		ArrayList<AStarNode> snapshot;
 		synchronized (openList) {
-			for (AStarNode node : openList) {
+			snapshot = new ArrayList<>(openList);
+		}
+		try {
+			for (AStarNode node : snapshot) {
 				int px = node.x;
 				int py = node.y;
 				dbg.setColor(Color.orange);
 				dbg.fillRect(px * 16 - mapa.MapX, py * 16 - mapa.MapY, 16, 16);
 			}
+		} catch (Exception e) {
+			// throw new RuntimeException(e);
+
 		}
+
 	}
 
 	
