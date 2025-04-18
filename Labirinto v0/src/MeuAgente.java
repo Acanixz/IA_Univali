@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.Arrays;
 
 
 public class MeuAgente extends Agente {
@@ -24,7 +25,29 @@ public class MeuAgente extends Agente {
 		
 		this.color = color;
 	}
-	
+
+	public void MoverAgente(int[] caminho) throws InterruptedException {
+		int[][] caminho2D = new int[caminho.length / 2][2];
+		for (int i = 0; i < caminho.length; i += 2) {
+			int indicePar = i / 2;
+			caminho2D[indicePar][0] = caminho[i];     // X
+			caminho2D[indicePar][1] = caminho[i + 1]; // Y
+		}
+
+		System.out.println(Arrays.deepToString(caminho2D));
+
+		for (int[] coords : caminho2D) {
+			int coordsX = coords[0]*16+8; // Coordenada X do ponto atual
+			int coordsY = coords[1]*16+8; // Coordenada Y do ponto atual
+
+			this.X = coordsX;
+			this.Y = coordsY;
+			// System.out.println(this.X + " | " + this.Y);
+
+			Thread.sleep(25);
+		}
+	}
+
 	@Override
 	public void SimulaSe(int DiffTime) {
 		// TODO Auto-generated method stub
@@ -65,13 +88,18 @@ public class MeuAgente extends Agente {
 
 	@Override
 	public void DesenhaSe(Graphics2D dbg, int XMundo, int YMundo) {
+		System.out.println("Agente está usando a função errada, utilize DesenhaAgente p/ compatibilidade com zoom");
+	}
+
+
+	public void DesenhaAgente(Graphics2D dbg, int XMundo, int YMundo, float zoom) {
 		// TODO Auto-generated method stub
 		dbg.setColor(color);
 		
-		dbg.drawOval((int)(X-10)-XMundo, (int)(Y-10)-YMundo, 20, 20);
+		dbg.drawOval((int) ((int)((X-10)-XMundo)*zoom), (int) ((int)((Y-10)-YMundo)*zoom), (int) (20*zoom), (int) (20*zoom));
 		
 		double linefx = X + 10*Math.cos(ang);
-		double linefy = Y + 10*Math.sin(ang);dbg.drawLine((int)X-XMundo,(int)Y-YMundo, (int)linefx-XMundo, (int)linefy-YMundo);
+		double linefy = Y + 10*Math.sin(ang);dbg.drawLine((int) ((int)(X-XMundo)*zoom), (int) ((int)(Y-YMundo)*zoom), (int) ((int)(linefx-XMundo)*zoom), (int) ((int)(linefy-YMundo)*zoom));
 	
 	}
 
