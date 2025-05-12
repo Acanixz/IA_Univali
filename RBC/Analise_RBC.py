@@ -1,19 +1,46 @@
+import os
 import pandas as pd
+
+# Matrizes de similaridade simbólica
+CHEST_PAIN_SIM = {
+    "ASY": {"ASY": 1.0, "ATA": 0.67, "NAP": 0.33, "TA": 0.0},
+    "ATA": {"ASY": 0.67, "ATA": 1.0, "NAP": 0.67, "TA": 0.33},
+    "NAP": {"ASY": 0.33, "ATA": 0.67, "NAP": 1.0, "TA": 0.67},
+    "TA":  {"ASY": 0.0,  "ATA": 0.33, "NAP": 0.67, "TA": 1.0}
+}
+
+RESTING_ECG_SIM = {
+    "Normal": {"Normal": 1.0, "ST": 0.5, "LVH": 0.0},
+    "ST": {"Normal": 0.5, "ST": 1.0, "LVH": 0.5},
+    "LVH": {"Normal": 0.0, "ST": 0.5, "LVH": 1.0}
+}
+
+ST_SLOPE_SIM = {
+    "Up": {"Up": 1.0, "Flat": 0.5, "Down": 0.0},
+    "Flat": {"Up": 0.5, "Flat": 1.0, "Down": 0.5},
+    "Down": {"Up": 0.0, "Flat": 0.5, "Down": 1.0}
+}
 
 def load_data(path):
     return pd.read_csv(path)
 
-# Métrica de similaridade numérica (Distância de Manhattan normalizada)
 def numeric_similarity(x1, x2, attr, df):
     min_val = df[attr].min()
     max_val = df[attr].max()
     return 1 - abs(x1 - x2) / (max_val - min_val)
 
-# Métrica de similaridade binária (1 se igual, 0 se diferente)
-def categorical_similarity(x1, x2):
+def binary_similarity(x1, x2):
     return 1.0 if x1 == x2 else 0.0
 
-# Ajuste inicial de pesos
+def symbolic_similarity(attr, x1, x2):
+    SIM_TABLES = {
+        "ChestPainType": CHEST_PAIN_SIM,
+        "RestingECG": RESTING_ECG_SIM,
+        "ST_Slope": ST_SLOPE_SIM
+    }
+    table = SIM_TABLES.get(attr)
+    return table.get(x1, {}).get(x2, 0.0)
+
 def get_weights(defaults):
     print("=== Ajuste de Pesos (pressione Enter para manter valor) ===")
     for attr, w in defaults.items():
@@ -25,7 +52,6 @@ def get_weights(defaults):
                 print(f"Entrada inválida para {attr}, usando {w}.")
     return defaults
 
-# Inserção de um caso de entrada
 def get_input_case(attrs):
     print("\n=== Inserção de Caso de Entrada ===")
     case = {}
@@ -37,7 +63,6 @@ def get_input_case(attrs):
             case[attr] = float(inp)
     return case
 
-# Cálculo da similaridade global para cada caso na base
 def compute_global_similarity(df, case, weights):
     total_w = sum(weights.values())
     def sim_row(row):
@@ -46,15 +71,16 @@ def compute_global_similarity(df, case, weights):
             x1, x2 = case[attr], row[attr]
             if attr in ['Age', 'RestingBP', 'Cholesterol', 'MaxHR', 'Oldpeak']:
                 local = numeric_similarity(x1, x2, attr, df)
+            elif attr in ['ChestPainType', 'RestingECG', 'ST_Slope']:
+                local = symbolic_similarity(attr, x1, x2)
             else:
-                local = categorical_similarity(x1, x2)
+                local = binary_similarity(x1, x2)
             s += w * local
         return s / total_w
     return df.apply(sim_row, axis=1)
 
-# Menu de interação
 def main():
-    # Passos 1 e 2: carregar dados e definir pesos
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     df = load_data('heart.csv')
     default_weights = {
         'Cholesterol': 0.15,
@@ -69,10 +95,9 @@ def main():
         'Sex': 0.04,
         'RestingECG': 0.03
     }
-    # Ajuste inicial pelo usuário
     weights = default_weights.copy()
-
     attrs = list(weights.keys())
+
     while True:
         print("\n=== Menu ===")
         print("1 - Ver pesos")
