@@ -1,45 +1,44 @@
 Entrada idêntica a um caso real (heart.csv, index 0)
 {
- 'Age': 40,
- 'Sex': 'M',
- 'ChestPainType': 'ATA',
- 'RestingBP': 140,
- 'Cholesterol': 289,
- 'FastingBS': 0,
- 'RestingECG': 'Normal',
- 'MaxHR': 172,
- 'ExerciseAngina': 'N',
- 'Oldpeak': 0.0,
- 'ST_Slope': 'Up'
+  'Cholesterol': 289,
+  'ChestPainType': 'ATA',
+  'FastingBS': 0,
+  'RestingBP': 140,
+  'ExerciseAngina': 'N',
+  'MaxHR': 172,
+  'Oldpeak': 0.0,
+  'ST_Slope': 'Up',
+  'Age': 40,
+  'Sex': 'M',
+  'RestingECG': 'Normal',
 }
-
 
 Entrada 2 - Paciente de risco elevado (idoso, obeso, sintomas evidentes)
 {
- 'Age': 68,
- 'Sex': 'F',
- 'ChestPainType': 'ASY',
- 'RestingBP': 180,
- 'Cholesterol': 340,
- 'FastingBS': 1,
- 'RestingECG': 'LVH',
- 'MaxHR': 100,
- 'ExerciseAngina': 'Y',
- 'Oldpeak': 2.5,
- 'ST_Slope': 'Flat'
+  'Cholesterol': 340,
+  'ChestPainType': 'ASY',
+  'FastingBS': 1,
+  'RestingBP': 180,
+  'ExerciseAngina': 'Y',
+  'MaxHR': 100,
+  'Oldpeak': 2.5,
+  'ST_Slope': 'Flat',
+  'Age': 68,
+  'Sex': 'F',
+  'RestingECG': 'LVH',
 }
 
 Entrada 3 - Jovem com indício leve
 {
- 'Age': 29,
- 'Sex': 'M',
- 'ChestPainType': 'NAP',
- 'RestingBP': 120,
- 'Cholesterol': 180,
- 'FastingBS': 0,
- 'RestingECG': 'Normal',
- 'MaxHR': 185,
- 'ExerciseAngina': 'N',
- 'Oldpeak': 0.1,
- 'ST_Slope': 'Up'
+  'Cholesterol': 180,
+  'ChestPainType': 'NAP',
+  'FastingBS': 0,
+  'RestingBP': 120,
+  'ExerciseAngina': 'N',
+  'MaxHR': 185,
+  'Oldpeak': 0.1,
+  'ST_Slope': 'Up',
+  'Age': 29,
+  'Sex': 'M',
+  'RestingECG': 'Normal',
 }
