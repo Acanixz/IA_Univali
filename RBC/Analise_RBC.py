@@ -2,7 +2,7 @@ import os
 import sys
 import pandas as pd
 
-# Matrizes de similaridade simbólica
+### Matrizes de similaridade simbólica ###
 CHEST_PAIN_SIM = {
     "ASY": {"ASY": 1.0, "ATA": 0.67, "NAP": 0.33, "TA": 0.0},
     "ATA": {"ASY": 0.67, "ATA": 1.0, "NAP": 0.67, "TA": 0.33},
@@ -22,6 +22,7 @@ ST_SLOPE_SIM = {
     "Down": {"Up": 0.0, "Flat": 0.5, "Down": 1.0}
 }
 
+### Carergamento da planilha ###
 def resource_path(relative_path):
     base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
     return os.path.join(base_path, relative_path)
@@ -30,6 +31,7 @@ def load_data(filename):
     path = resource_path(filename)
     return pd.read_csv(path)
 
+### Formulas de similaridade ###
 def numeric_similarity(x1, x2, attr, df):
     min_val = df[attr].min()
     max_val = df[attr].max()
