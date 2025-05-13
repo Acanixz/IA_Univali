@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 
 # Matrizes de similaridade simbólica
@@ -21,7 +22,12 @@ ST_SLOPE_SIM = {
     "Down": {"Up": 0.0, "Flat": 0.5, "Down": 1.0}
 }
 
-def load_data(path):
+def resource_path(relative_path):
+    base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+    return os.path.join(base_path, relative_path)
+
+def load_data(filename):
+    path = resource_path(filename)
     return pd.read_csv(path)
 
 def numeric_similarity(x1, x2, attr, df):
