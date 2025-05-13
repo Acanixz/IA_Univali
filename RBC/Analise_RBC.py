@@ -118,13 +118,13 @@ def main():
             case = get_input_case(attrs)
             df['Similarity'] = compute_global_similarity(df, case, weights)
             df_sorted = df.sort_values(by='Similarity', ascending=False)
+            top_10 = df_sorted.head(10)
             cols = attrs + ['HeartDisease', 'Similarity']
 
             print("\nCaso de entrada:\n", case)
             input("Aperte enter para calcular similaridade")
-            print("\n=== Casos Ordenados por Similaridade ===")
-            print(df_sorted[cols]
-                  .to_string(index=False, float_format="{:.3f}".format))
+            print("\n=== Top 10 Casos Mais Similares ===")
+            print(top_10[cols].to_string(index=False, float_format="{:.3f}".format))
 
         elif choice == '0':
             print("Encerrando...")
