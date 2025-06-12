@@ -58,13 +58,15 @@ def avaliar_individuo(dna, precos, capital_inicial=1000.0, n_potes=10):
         parte = capital / n_potes
         total_venda = 0.0
         aloc_dia = []
+        
+        # Simulação do indivíduo p/ o dia com o pote escolhido
         for pote in range(n_potes):
-            idx = dna[dia, pote]
+            idx = dna[dia, pote] # Ação escolhida
             cod = precos.columns[idx]
             fechamento_compra = precos_dia[idx]
             fechamento_venda = precos_prox[idx]
-            ações = parte / fechamento_compra
-            valor_venda = ações * fechamento_venda
+            ações = parte / fechamento_compra # Porção do pote / Valor de fechamento = Qtd. ações
+            valor_venda = ações * fechamento_venda # Capital após venda das ações
             total_venda += valor_venda
             aloc_dia.append((pote+1, cod, fechamento_compra, fechamento_venda, valor_venda))
         capital = total_venda
@@ -78,6 +80,11 @@ def inicializar_população(tam_pop, tam_dna, n_ativos):
 
 def seleção_torneio(pop, fits, k=3):
     nova_pop = []
+    # Qtd torneios: tam. população
+    # 1 - Escolhe aleatóriamente os aspirantes
+    # 2 - O vencedor com o maior fitness entra na nova pop.
+
+    # Vencedores podem repetir caso ganhem mais torneios
     for _ in range(len(pop)):
         aspirantes = random.sample(range(len(pop)), k)
         vencedor = max(aspirantes, key=lambda i: fits[i])
@@ -105,6 +112,7 @@ def algoritmo_genético(precos, tam_pop=50, gerações=100, p_cx=0.8, p_mut=0.01
                         capital_inicial=1000.0, n_potes=10):
     n_dias = precos.shape[0] - 1
     n_ativos = precos.shape[1]
+    # DNA = Numero de dias no Excel * nº Potes
     tam_dna = n_dias * n_potes
     pop = inicializar_população(tam_pop, tam_dna, n_ativos)
     melhor_fit = -np.inf
@@ -113,6 +121,7 @@ def algoritmo_genético(precos, tam_pop=50, gerações=100, p_cx=0.8, p_mut=0.01
 
     for g in range(1, gerações+1):
         fits = []
+        # Para cada indivíduo por geração, o melhor indivíduo é definido e entra na lista de seleção
         for indiv in pop:
             val, hist = avaliar_individuo(indiv, precos, capital_inicial, n_potes)
             fits.append(val)
@@ -121,32 +130,37 @@ def algoritmo_genético(precos, tam_pop=50, gerações=100, p_cx=0.8, p_mut=0.01
                 melhor_dna = indiv.copy()
                 melhor_historico = hist
         print(f"Geração {g}: Melhor capital = R$ {melhor_fit:.2f}")
-        # seleção
+
+        # Seleção
         sel = seleção_torneio(pop, fits)
-        # reprodução
+
+        # Reprodução
         nova_pop = []
         for i in range(0, tam_pop, 2):
+            # Cruza individuos e gera uma nova mutação (1% chance)
             p1, p2 = sel[i], sel[min(i+1, tam_pop-1)]
             f1, f2 = cruzamento(p1, p2, p_cx)
             nova_pop.append(mutação(f1, p_mut, n_ativos))
             if len(nova_pop) < tam_pop:
+                # Segundo individuo é adicionado após mutação caso ainda haja espaço
                 nova_pop.append(mutação(f2, p_mut, n_ativos))
         pop = nova_pop
 
     return melhor_fit, melhor_historico
 
 if __name__ == "__main__":
+    print("Carregando arquivo, por favor aguarde..")
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     caminho = "cotacoes_b3_202_05.xlsx"
     precos = carregar_dados(caminho)
     print("Preview dos preços:")
     print(precos.head())
 
-    valor_final, historico = algoritmo_genético(precos, tam_pop=100, gerações=50)
+    valor_final, historico = algoritmo_genético(precos, tam_pop=1000, gerações=100)
     print(f"\nCapital final: R$ {valor_final:.2f}\n")
     # Exibe histórico de cada ciclo
     for ciclo in historico:
-        print(f"Dia: {ciclo['dia'].date()} | Capital: R$ {ciclo['capital']:.2f}")
+        print(f"Dia: {ciclo['dia'].date()} | Capital: R$ {ciclo['capital']:.2f} | Capital por pote: R${(ciclo['capital']/10):.2f}")
         for pote, codigo, compra, venda, valor in ciclo['alocação']:
-            print(f"  Pote {pote}: {codigo} | Compra: {compra:.2f} | Venda: {venda:.2f} | Valor obtido: R$ {valor:.2f}")
+            print(f"  Pote {pote}: {codigo} | Compra: {compra:.2f} | Venda: {venda:.2f} | Valor final: R$ {valor:.2f} | Diferença: R$ {valor - (ciclo['capital']/10):.2f}")
         print()
