@@ -29,15 +29,15 @@ def main():
     df_training = df_training.drop("duration", axis=1)
 
     # Mapeamento de atributos e alvo
-    X = df_training.drop("y", axis=1) # Todos atributos (exceto y pois é output)
+    X = df_training.drop("y", axis=1)  # Todos atributos (exceto y pois é output)
     Y = df_training["y"].map({"yes": 1, "no": 0})
 
     """Parte 2 - Mapeamento e transformação dos atributos por tipo de dado"""
     categorical_cols = X.select_dtypes(include=["object"]).columns.tolist()
     numerical_cols = X.select_dtypes(include=["int64"]).columns.tolist()
 
-    ## Colunas numéricas são normalizadas (pivotadas entre 0 e 1)
-    ## Colunas de texto(categoricos) são codificados p/ vetores binários
+    ## Colunas numéricas são padronizadas (média 0, desvio padrão 1)
+    ## Colunas categóricas são codificadas em vetores binários (One-Hot)
     preprocessor = ColumnTransformer(transformers=[
         ("num", StandardScaler(), numerical_cols),
         ("cat", OneHotEncoder(handle_unknown="ignore"), categorical_cols)
@@ -57,12 +57,14 @@ def main():
     # Prever usando o conjunto de validação
     y_pred = pipeline.predict(x_val)
 
-    # Calcular as métricas
+    # Calcular as métricas no conjunto de validação
+    print("=== Avaliação Interna (bank.csv) ===")
     print("Acurácia:", accuracy_score(y_val, y_pred))
     print("Precisão:", precision_score(y_val, y_pred))
     print("Recall:", recall_score(y_val, y_pred))
     print("F1 Score:", f1_score(y_val, y_pred))
 
+    """Parte 4 - Validação Externa"""
     # Carregar o dataset completo para validação externa
     df_full = pd.read_csv('dataset_bank/bank-full.csv', sep=';')
     df_full = df_full.drop("duration", axis=1)
@@ -71,13 +73,11 @@ def main():
 
     # Prever e avaliar no dataset completo
     y_full_pred = pipeline.predict(X_full)
-    accuracy_full = accuracy_score(y_full, y_full_pred)
-    precision_full = precision_score(y_full, y_full_pred)
-    recall_full = recall_score(y_full, y_full_pred)
-    f1_full = f1_score(y_full, y_full_pred)
-
-    accuracy_full, precision_full, recall_full, f1_full
-
+    print("=== Avaliação Externa (bank-full.csv) ===")
+    print("Acurácia:", accuracy_score(y_full, y_full_pred))
+    print("Precisão:", precision_score(y_full, y_full_pred))
+    print("Recall:", recall_score(y_full, y_full_pred))
+    print("F1 Score:", f1_score(y_full, y_full_pred))
 
 if __name__ == "__main__":
     # CWD = Diretório do script .py
