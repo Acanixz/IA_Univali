@@ -11,13 +11,14 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 
 # Rede neural e pesquisa de hiperparâmetros
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import StratifiedKFold, train_test_split, GridSearchCV
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline as ImbPipeline
 from sklearn.neural_network import MLPClassifier  # MLP de Backpropagation
 
 # Métricas
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import classification_report, confusion_matrix
 
 def main():
     # Seed utilizada pelo modelo, defina None p/ resultados aleatórios
@@ -51,14 +52,19 @@ def main():
     pipeline = ImbPipeline(steps=[
         ("preprocessor", preprocessor),
         ("smote", SMOTE(random_state=random_seed)),
-        ("classifier", MLPClassifier(max_iter=3000, early_stopping=True, random_state=random_seed))
+        ("classifier", MLPClassifier(max_iter=300, early_stopping=True, random_state=random_seed))
     ])
 
     # Grid de parâmetros para ajuste fino
     param_grid = {
-        'classifier__hidden_layer_sizes': [(32,16), (64,32,16)],    # Camadas ocultas
-        'classifier__alpha': [0.0001, 0.001, 0.01],                 # Evita overfitting penalizando pesos maiores
-        'classifier__learning_rate_init': [0.001, 0.01]             # Limite de aprendizado
+        'classifier__hidden_layer_sizes': [
+        (32,), (64,), (128,), 
+        (64,32), (128,64), (256,128),
+        (64,64,32), (128,128,64)
+    ],
+    'classifier__alpha': [0.0001, 0.001, 0.01, 0.1],
+    'classifier__learning_rate_init': [0.0001, 0.001, 0.01, 0.1],
+    'smote__sampling_strategy': [0.3, 0.5, 0.7]  # Controle de balanceamento
     }
 
     # Divisão treino/validação interna
@@ -71,8 +77,9 @@ def main():
         pipeline,
         param_grid=param_grid,
         scoring='f1',
-        cv=3,
-        n_jobs=-1
+        cv=5,
+        n_jobs=-1,
+        verbose=2
     )
 
     grid_search.fit(x_train, y_train)
@@ -83,10 +90,10 @@ def main():
     """Parte 4 - Avaliação Interna"""
     y_pred = best_model.predict(x_val)
     print("=== Avaliação Interna (bank.csv) ===")
-    print("Acurácia:", accuracy_score(y_val, y_pred))
-    print("Precisão:", precision_score(y_val, y_pred))
-    print("Recall:", recall_score(y_val, y_pred))
-    print("F1 Score:", f1_score(y_val, y_pred))
+    print("Acurácia:", round(accuracy_score(y_val, y_pred), 2))
+    print("Precisão:", round(precision_score(y_val, y_pred), 2))
+    print("Recall:", round(recall_score(y_val, y_pred), 2))
+    print("F1 Score:", round(f1_score(y_val, y_pred), 2))
 
     """Parte 5 - Validação Externa"""
     df_full = pd.read_csv('dataset_bank/bank-full.csv', sep=';')
@@ -96,10 +103,10 @@ def main():
 
     y_full_pred = best_model.predict(X_full)
     print("=== Avaliação Externa (bank-full.csv) ===")
-    print("Acurácia:", accuracy_score(y_full, y_full_pred))
-    print("Precisão:", precision_score(y_full, y_full_pred))
-    print("Recall:", recall_score(y_full, y_full_pred))
-    print("F1 Score:", f1_score(y_full, y_full_pred))
+    print("Acurácia:", round(accuracy_score(y_full, y_full_pred), 2))
+    print("Precisão:", round(precision_score(y_full, y_full_pred), 2))
+    print("Recall:", round(recall_score(y_full, y_full_pred), 2))
+    print("F1 Score:", round(f1_score(y_full, y_full_pred), 2))
 
 if __name__ == "__main__":
     # CWD = Diretório do script .py
