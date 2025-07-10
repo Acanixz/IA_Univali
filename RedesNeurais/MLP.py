@@ -48,7 +48,6 @@ def main():
     """Parte 3 - Pesquisa de Hiperparâmetros e Balanceamento"""
     # Pipeline com SMOTE para oversampling e MLPClassifier
     # SMOTE balanceia a classe minoritária gerando exemplos sintéticos antes de treinar a MLP
-    # Iterações maximas em 3000 devido a early stopping (não há melhorias significativas p/ continuar)
     pipeline = ImbPipeline(steps=[
         ("preprocessor", preprocessor),
         ("smote", SMOTE(random_state=random_seed)),
@@ -58,7 +57,6 @@ def main():
     # Grid de parâmetros para ajuste fino
     param_grid = {
         'classifier__hidden_layer_sizes': [
-        (32,), (64,), (128,), 
         (64,32), (128,64), (256,128),
         (64,64,32), (128,128,64)
     ],
@@ -108,6 +106,13 @@ def main():
     print("Recall:", round(recall_score(y_full, y_full_pred), 2))
     print("F1 Score:", round(f1_score(y_full, y_full_pred), 2))
 
+    print("=== Matriz de Confusão (bank-full.csv) ===")
+    cm = confusion_matrix(y_full, y_full_pred)
+    print("              Predito")
+    print("           |  0  |  1")
+    print("      -----------------")
+    print(f"Real  0   | {cm[0][0]:>3} | {cm[0][1]:>3}  ← Falsos Positivos")
+    print(f"      1   | {cm[1][0]:>3} | {cm[1][1]:>3}  ← Verdadeiros Positivos")
 if __name__ == "__main__":
     # CWD = Diretório do script .py
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
