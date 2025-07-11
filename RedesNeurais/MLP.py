@@ -51,7 +51,7 @@ def main():
     pipeline = ImbPipeline(steps=[
         ("preprocessor", preprocessor),
         ("smote", SMOTE(random_state=random_seed)),
-        ("classifier", MLPClassifier(max_iter=300, early_stopping=True, random_state=random_seed))
+        ("classifier", MLPClassifier(max_iter=3000, early_stopping=True, random_state=random_seed))
     ])
 
     # Grid de parâmetros para ajuste fino
