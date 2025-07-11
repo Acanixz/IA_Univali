@@ -14,7 +14,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import StratifiedKFold, train_test_split, GridSearchCV
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline as ImbPipeline
-from sklearn.neural_network import MLPClassifier  # MLP de Backpropagation
+from sklearn.neural_network import MLPClassifier  # MLP de Backpropagation (Saidas Relu e Sigmoid)
 
 # Métricas
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
